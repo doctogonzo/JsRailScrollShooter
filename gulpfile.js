@@ -51,16 +51,14 @@ function getBuildStream(addr, minify) {
 gulp.task('build', function(){
     return del(['build/**/*', '!build/.git/**/*']).then(function() {
         getDeployAddr(function(addr) {
-            getBuildStream(addr, true).pipe(gulp.dest('build/'));
+            getBuildStream(addr, false).pipe(gulp.dest('build/'));
         });
     });
 });
 
 gulp.task('release', function(){
     return del(['build/**/*', '!build/.git/**/*']).then(function() {
-        getDeployAddr(function(addr) {
-            getBuildStream(addr).pipe(gulp.dest('build/'));
-        });
+        getBuildStream('http://doctogonzo.github.io/JsRailScrollShooter', true).pipe(gulp.dest('build/'));
     });
 });
 

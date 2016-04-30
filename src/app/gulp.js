@@ -39,8 +39,8 @@ exports.build = function(srcPath, destPath, addr, minify) {
         //--- index.html
         gulp.src(srcPath + "/*.html")
             .pipe(rigger())
-            .pipe(replace("<!-- inject:js -->", '<script src="'+destPath+'app.js"></script>'))
-            .pipe(replace("<!-- inject:css -->", '<link rel="stylesheet" href="'+destPath+'content.css">'))
+            .pipe(replace("<!-- inject:js -->", '<script src="'+addr+destPath+'app.js"></script>'))
+            .pipe(replace("<!-- inject:css -->", '<link rel="stylesheet" href="'+addr+destPath+'content.css">'))
             .pipe(gulpif(minify, htmlmin({collapseWhitespace: true}))),
 
         //--- content.css
