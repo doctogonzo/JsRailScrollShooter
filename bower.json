@@ -29,5 +29,6 @@
       "webrtc-adapter",
       "fulltilt"
     ]
-  }
+  },
+  "repository": "https://github.com/doctogonzo/JsRailScrollShooter.git"
 }

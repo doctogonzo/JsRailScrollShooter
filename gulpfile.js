@@ -2,13 +2,14 @@
 
 var gulp = require('gulp'),
     mainBowerFiles = require('main-bower-files'),
-    rimraf = require('rimraf'),
+    del = require('del'),
     imagemin = require('gulp-imagemin'),
     pngquant = require('imagemin-pngquant'),
     app = require('./src/app/gulp.js'),
     controller = require('./src/controller/gulp.js'),
     merge = require('merge-stream'),
-    filter = require('gulp-filter');
+    filter = require('gulp-filter'),
+    rename = require("gulp-rename");
 
 function getDeployAddr(callback) {
     require('dns').lookup(require('os').hostname(), function (err, add, fam) {
@@ -16,28 +17,49 @@ function getDeployAddr(callback) {
     });
 }
 
+function getBuildStream(addr, minify) {
+    console.log('addr: ' + addr);
+    return merge (
+        app.build('src/app', '/', addr, minify),
+
+        controller.build('src/controller', '/controller/', addr, minify)
+            .pipe(rename(function (path) {
+                path.dirname = "controller/" + path.dirname;
+            })),
+
+        //--- images
+        gulp.src(mainBowerFiles().concat(["src/**/*.png", "src/**/*.jpg"]))
+            .pipe(filter(["src/**/*.png", "src/**/*.jpg"]))
+            .pipe(imagemin({
+                progressive: true,
+                svgoPlugins: [{removeViewBox: false}],
+                use: [pngquant()],
+                interlaced: true
+            }))
+            .pipe(rename(function (path) {
+                path.dirname = "content/" + path.dirname;
+            })),
+
+        //--- fonts
+        gulp.src("src/**/*.tff")
+            .pipe(rename(function (path) {
+                path.dirname = "content/" + path.dirname;
+            }))
+    )
+}
+
 gulp.task('build', function(){
-    rimraf('build', function() {
+    return del(['build/**/*', '!build/.git/**/*']).then(function() {
         getDeployAddr(function(addr) {
-            console.log('addr: ' + addr);
+            getBuildStream(addr, true).pipe(gulp.dest('build/'));
+        });
+    });
+});
 
-            app.build('src/app', 'build', '/', addr);
-            controller.build('src/controller', 'build', '/controller/', addr);
-
-            //--- images
-            gulp.src(mainBowerFiles().concat(["src/**/*.png", "src/**/*.jpg"]))
-                .pipe(filter(["src/**/*.png", "src/**/*.jpg"]))
-                .pipe(imagemin({
-                    progressive: true,
-                    svgoPlugins: [{removeViewBox: false}],
-                    use: [pngquant()],
-                    interlaced: true
-                }))
-                .pipe(gulp.dest('build/content/img'));
-
-            //--- fonts
-            gulp.src("src/**/*.tff")
-                .pipe(gulp.dest('build/content/fonts'));
+gulp.task('release', function(){
+    return del(['build/**/*', '!build/.git/**/*']).then(function() {
+        getDeployAddr(function(addr) {
+            getBuildStream(addr).pipe(gulp.dest('build/'));
         });
     });
 });

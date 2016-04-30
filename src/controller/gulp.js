@@ -12,9 +12,11 @@ var
     cssmin = require('gulp-cssnano'),
     rigger = require('gulp-rigger'),
     merge = require('merge-stream'),
-    order = require("gulp-order");
+    order = require("gulp-order"),
+    htmlmin = require('gulp-htmlmin'),
+    gulpif = require('gulp-if');
 
-exports.build = function(srcPath, buildPath, destPath, addr) {
+exports.build = function(srcPath, destPath, addr, minify) {
     return merge(
 
         //--- app.js
@@ -28,29 +30,27 @@ exports.build = function(srcPath, buildPath, destPath, addr) {
             //    "app.js"
             //]))
             .pipe(replace("<APP DEPLOY ADDR>", addr))
-            .pipe(sourcemaps.init())
+            .pipe(gulpif(!minify, sourcemaps.init()))
             .pipe(concat("app.js"))
             .pipe(ngAnnotate())
-            //.pipe(uglify())
-            .pipe(sourcemaps.write())
-            .pipe(gulp.dest(buildPath + destPath)),
+            .pipe(gulpif(minify, uglify()))
+            .pipe(gulpif(!minify, sourcemaps.write())),
 
         //--- index.html
         gulp.src(srcPath + "/*.html")
             .pipe(rigger())
             .pipe(replace("<!-- inject:js -->", '<script src="'+destPath+'app.js"></script>'))
             .pipe(replace("<!-- inject:css -->", '<link rel="stylesheet" href="'+destPath+'content.css">'))
-            .pipe(gulp.dest(buildPath + destPath)),
+            .pipe(gulpif(minify, htmlmin({collapseWhitespace: true}))),
 
         //--- content.css
         gulp.src(mainBowerFiles({group: 'controller'}).concat(srcPath + "/**/*.*"))
             .pipe(filter(['**/*.css', '**/*.scss']))
-            .pipe(sourcemaps.init())
+            .pipe(gulpif(!minify, sourcemaps.init()))
             .pipe(concat('content.css'))
             .pipe(sass())
             .pipe(prefixer())
-            //.pipe(cssmin())
-            .pipe(sourcemaps.write())
-            .pipe(gulp.dest(buildPath + destPath))
+            .pipe(gulpif(minify, cssmin()))
+            .pipe(gulpif(!minify, sourcemaps.write()))
     );
 };
