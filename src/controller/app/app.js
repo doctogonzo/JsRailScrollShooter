@@ -67,105 +67,28 @@
             }
         });
 
-        var promise = new FULLTILT.getDeviceOrientation({ 'type': 'world' });
+        gyro.frequency = 1;
+        gyro.startTracking(function(obj) {
+            trackRes = obj;
+            for (var id in indicators) {
+                if (!indicators.hasOwnProperty(id) || !indicators[id] || !obj.hasOwnProperty(id))
+                    continue;
+                indicators[id].innerHTML = obj[id];
+            }
+            var v = viewPointCalculator.getVector(obj);
+            indicators['vx'].innerHTML = v.x;
+            indicators['vy'].innerHTML = v.y;
+            indicators['vz'].innerHTML = v.z;
 
-        // FULLTILT.DeviceOrientation instance placeholder
-        var deviceOrientation;
+            switch (state) {
+                case 'calibration': {
 
-        promise
-            .then(function(controller) {
-                // Store the returned FULLTILT.DeviceOrientation object
-                deviceOrientation = controller;
-            })
-            .catch(function(message) {
-                console.error(message);
-
-                // Optionally set up fallback controls...
-                // initManualControls();
-            });
-
-        (function draw() {
-
-            // If we have a valid FULLTILT.DeviceOrientation object then use it
-            if (deviceOrientation) {
-                trackRes = deviceOrientation.getScreenAdjustedEuler();
-
-                var v = viewPointCalculator.getVector(trackRes);
-                indicators['vx'].innerHTML = v.x;
-                indicators['vy'].innerHTML = v.y;
-                indicators['vz'].innerHTML = v.z;
-
-                switch (state) {
-                    case 'calibration': {
-
-                    } break;
-                    default: {
-                        controllerConnection.sendMessage('indicatorState', viewPointCalculator.getPoint(trackRes));
-                    }
+                } break;
+                default: {
+                    controllerConnection.sendMessage('indicatorState', viewPointCalculator.getPoint(obj));
                 }
             }
-            requestAnimationFrame(draw);
-
-        })();
-
-        //window.addEventListener('devicemotion', function(obj) {
-        //    trackRes = obj;
-        //    var v = viewPointCalculator.getVector(obj.rotationRate);
-        //    indicators['vx'].innerHTML = v.x;
-        //    indicators['vy'].innerHTML = v.y;
-        //    indicators['vz'].innerHTML = v.z;
-        //
-        //    switch (state) {
-        //        case 'calibration': {
-        //
-        //        } break;
-        //        default: {
-        //            controllerConnection.sendMessage('indicatorState', viewPointCalculator.getPoint(obj.rotationRate));
-        //        }
-        //    }
-        //}, true);
-
-        //window.addEventListener('devicemotion', function(obj) {
-        //    trackRes = obj;
-        //
-        //    indicators['x'].innerHTML = JSON.stringify(obj);
-        //    var v = viewPointCalculator.getVector(obj.rotationRate);
-        //    indicators['vx'].innerHTML = v.x;
-        //    indicators['vy'].innerHTML = v.y;
-        //    indicators['vz'].innerHTML = v.z;
-        //
-        //    switch (state) {
-        //        case 'calibration': {
-        //
-        //        } break;
-        //        default: {
-        //            controllerConnection.sendMessage('indicatorState', viewPointCalculator.getPoint(obj));
-        //        }
-        //    }
-        //});
-
-        //gyro.frequency = 1;
-        //gyro.startTracking(function(obj) {
-        //    trackRes = obj;
-        //    for (var id in indicators) {
-        //        if (!indicators.hasOwnProperty(id) || !indicators[id] || !obj.hasOwnProperty(id))
-        //            continue;
-        //        indicators[id].innerHTML = obj[id];
-        //    }
-        //    var v = viewPointCalculator.getVector(obj);
-        //    indicators['vx'].innerHTML = v.x;
-        //    indicators['vy'].innerHTML = v.y;
-        //    indicators['vz'].innerHTML = v.z;
-        //
-        //    switch (state) {
-        //        case 'calibration': {
-        //
-        //        } break;
-        //        default: {
-        //            controllerConnection.sendMessage('indicatorState', viewPointCalculator.getPoint(obj));
-        //        }
-        //    }
-        //});
+        });
     });
 
     function getQueryVariable(variable)
