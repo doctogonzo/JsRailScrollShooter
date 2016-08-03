@@ -16,8 +16,7 @@
   ],
   "dependencies": {
     "jquery": "~2.2.2",
-    "webrtc-adapter": "gh-pages",
-    "fulltilt": "~0.5.3"
+    "webrtc-adapter": "gh-pages"
   },
   "group": {
     "app": [
@@ -26,8 +25,7 @@
     ],
     "controller": [
       "jquery",
-      "webrtc-adapter",
-      "fulltilt"
+      "webrtc-adapter"
     ]
   },
   "repository": "https://github.com/doctogonzo/JsRailScrollShooter.git"
